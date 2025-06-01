@@ -9,14 +9,26 @@ import (
 	"github.com/abteilung6/tilmad/go/publicapi/endpoints"
 )
 
-func main() {
-	r := chi.NewRouter()
+type Server struct {
+	Router *chi.Mux
+}
 
-	r.Use(middleware.Logger)
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+func main() {
+	server := CreateNewServer()
+	MountHandlers(server)
+	http.ListenAndServe(":8080", server.Router)
+}
+
+func CreateNewServer() *Server {
+	server := &Server{}
+	server.Router = chi.NewRouter()
+	return server
+}
+
+func MountHandlers(server *Server) {
+	server.Router.Use(middleware.Logger)
+	server.Router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
-	r.Get("/blackberries", endpoints.GetBlackberries)
-
-	http.ListenAndServe(":8080", r)
+	server.Router.Get("/blackberries", endpoints.GetBlackberries)
 }
